@@ -3,7 +3,7 @@ import json
 import logging
 import boto3
 from botocore.exceptions import ClientError
-import json2html
+from json2html import *
 import datetime
 from dateutil.tz import tzutc
 
@@ -40,12 +40,10 @@ def average_cpu_instances(region, tag_key, tag_values, idle_period_secs, minimum
     f1['Name'] = 'instance-state-name'
     f1['Values'] = ['running']
     filters.append(f1)
-    # print filters
     rs = ec2.describe_instances(Filters=filters)
     now = datetime.datetime.now(tzutc())
     lookback = datetime.timedelta(seconds=idle_period_secs)
     time_start = now - lookback
-    # print rs['Reservations']
     instance_metric = {}
     for r in rs['Reservations']:
         for i in r['Instances']:
@@ -88,15 +86,16 @@ def upload_to_s3(region, instance_metric, file):
         logging.error(e)
         return False
 
-    # html = json2html.convert(json = json_object)
-    # print(html)
-    # with open("instance.html", "w") as html_file:
-    #     html_file.write(html)
-        # try:
-        #     response = s3_client.upload_file('instance.html', BUCKET, 'instance.html')
-        # except ClientError as e:
-        #     logging.error(e)
-        #     return False
+    html = json.loads(json_object)
+    html = json2html.convert(json = html)
+    print(html)
+    with open("instance.html", "w") as html_file:
+        html_file.write(html)
+        try:
+            response = s3_client.upload_file('index.html', BUCKET, 'instance.html')
+        except ClientError as e:
+            logging.error(e)
+            return False
 
     return True
 
@@ -116,25 +115,3 @@ def get_instances():
 
 app.run(port=5000)
 
-                
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--region", required=True,
-#                         dest='region', default=None)
-#     parser.add_argument("--tag-key", required=False,
-#                         dest='tag_key', default='instance-purpose')
-#     parser.add_argument("--tag-values", required=False,
-#                         dest='tag_values', default='test')
-#     parser.add_argument("--idle-period-secs", required=False,
-#                         dest='idle_period_secs', type=int, default=86400)
-#     parser.add_argument("--minimum-utilization", required=False,
-#                         dest='minimum', type=float, default=0.05)
-
-#     result = parser.parse_args()
-#     instance_metric = average_cpu_instances(region=result.region,
-#                         tag_key=result.tag_key,
-#                         tag_values=result.tag_values,
-#                         idle_period_secs=result.idle_period_secs,
-#                         minimum=result.minimum)
-
-#     response = upload_to_s3(region=result.region, instance_metric=instance_metric, file='instance_metric.json')
