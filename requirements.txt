@@ -1,7 +1,3 @@
 flask
-logging
 boto3
-botocore
 json2html
-datetime
-dateutil

@@ -92,7 +92,7 @@ def upload_to_s3(region, instance_metric, file):
     with open("instance.html", "w") as html_file:
         html_file.write(html)
         try:
-            response = s3_client.upload_file('index.html', BUCKET, 'instance.html')
+            response = s3_client.upload_file('instance.html', BUCKET, 'instance.html')
         except ClientError as e:
             logging.error(e)
             return False
@@ -104,7 +104,7 @@ def upload_to_s3(region, instance_metric, file):
 def get_instances():
     instance_metric = average_cpu_instances(region=AWS_REGION,
                         tag_key='Name',
-                        tag_values='aws_training',
+                        tag_values='portfolio',
                         idle_period_secs=86400,
                         minimum=0.05)
 
@@ -113,5 +113,6 @@ def get_instances():
         return jsonify({"message": "successfuly uploaded"})
     return jsonify({"message": "upload was not successful"})
 
-app.run(port=5000)
+if __name__ == "__main__":
+    app.run(host='0.0.0.0',port=5000)
 
